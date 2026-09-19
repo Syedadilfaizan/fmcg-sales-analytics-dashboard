@@ -1,0 +1,842 @@
+import React, { useState, useMemo } from 'react';
+import { 
+  AreaChart, Area, LineChart, Line, BarChart, Bar,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend
+} from 'recharts';
+import { 
+  TrendingUp, ShieldCheck, Zap, Server, Code, Sparkles, Layers, Download, 
+  Filter, RefreshCw, ChevronRight, CheckCircle2, BarChart3, Globe, ExternalLink, 
+  Github, Terminal, Sliders, AlertCircle, Play, ShoppingBag, Truck, Store, 
+  Boxes, PackageCheck, DollarSign, Search, Users, MapPin, Share2, Award, ArrowUpRight
+} from 'lucide-react';
+
+// Monthly FMCG Revenue, Target, and Trade Spend Data
+const monthlySalesData = [
+  { month: 'Jan', primarySales: 12.4, secondarySales: 11.8, target: 12.0, tradeSpend: 1.4 },
+  { month: 'Feb', primarySales: 13.8, secondarySales: 13.2, target: 13.0, tradeSpend: 1.6 },
+  { month: 'Mar', primarySales: 15.2, secondarySales: 14.7, target: 14.5, tradeSpend: 1.9 },
+  { month: 'Apr', primarySales: 14.6, secondarySales: 14.1, target: 14.8, tradeSpend: 1.7 },
+  { month: 'May', primarySales: 16.9, secondarySales: 16.2, target: 15.5, tradeSpend: 2.1 },
+  { month: 'Jun', primarySales: 18.4, secondarySales: 17.9, target: 17.0, tradeSpend: 2.3 },
+  { month: 'Jul', primarySales: 17.8, secondarySales: 17.1, target: 17.5, tradeSpend: 2.0 },
+  { month: 'Aug', primarySales: 19.5, secondarySales: 18.8, target: 18.0, tradeSpend: 2.5 },
+  { month: 'Sep', primarySales: 21.2, secondarySales: 20.6, target: 19.5, tradeSpend: 2.8 },
+  { month: 'Oct', primarySales: 23.5, secondarySales: 22.9, target: 21.0, tradeSpend: 3.2 },
+  { month: 'Nov', primarySales: 22.1, secondarySales: 21.4, target: 20.5, tradeSpend: 2.7 },
+  { month: 'Dec', primarySales: 25.0, secondarySales: 24.3, target: 22.5, tradeSpend: 3.5 },
+];
+
+// FMCG Category Performance Breakdown
+const categoryData = [
+  { name: 'Packaged Foods', revenue: 68.4, growth: '+14.2%', share: 32, color: '#3b82f6' },
+  { name: 'Personal Care', revenue: 48.2, growth: '+9.8%', share: 22, color: '#10b981' },
+  { name: 'Beverages', revenue: 39.5, growth: '+18.5%', share: 18, color: '#f59e0b' },
+  { name: 'Home Care', revenue: 32.8, growth: '+7.4%', share: 15, color: '#8b5cf6' },
+  { name: 'Dairy & Fresh', revenue: 27.6, growth: '+12.1%', share: 13, color: '#ec4899' },
+];
+
+// Route-to-Market (RTM) Channels Breakdown
+const channelShareData = [
+  { name: 'General Trade (Kirana)', value: 42, color: '#3b82f6' },
+  { name: 'Quick Commerce (Q-Comm)', value: 24, color: '#10b981' },
+  { name: 'Modern Trade (Supermarkets)', value: 20, color: '#8b5cf6' },
+  { name: 'E-Commerce (Marketplaces)', value: 14, color: '#f59e0b' },
+];
+
+// Top 10 High-Velocity SKUs Table Dataset
+const initialSKUs = [
+  { id: 'SKU-8091', name: 'AromaFresh Premium Coffee 200g', category: 'Beverages', revenue: '₹4.2 Cr', velocity: '184 units/day/store', oosRate: '1.2%', otif: '98.4%', trend: 'up' },
+  { id: 'SKU-4412', name: 'NutriCrunch Oat Digestive 500g', category: 'Packaged Foods', revenue: '₹3.8 Cr', velocity: '152 units/day/store', oosRate: '2.4%', otif: '96.2%', trend: 'up' },
+  { id: 'SKU-9921', name: 'GlowBotanica Herbal Shampoo 350ml', category: 'Personal Care', revenue: '₹3.1 Cr', velocity: '128 units/day/store', oosRate: '3.1%', otif: '94.8%', trend: 'down' },
+  { id: 'SKU-1044', name: 'PureSparkle Dishwash Gel 1L', category: 'Home Care', revenue: '₹2.9 Cr', velocity: '110 units/day/store', oosRate: '1.8%', otif: '97.5%', trend: 'up' },
+  { id: 'SKU-7730', name: 'FarmFresh Organic Milk 1L Pack', category: 'Dairy & Fresh', revenue: '₹2.7 Cr', velocity: '240 units/day/store', oosRate: '4.5%', otif: '92.1%', trend: 'up' },
+  { id: 'SKU-3120', name: 'ChocoDelight Dark Bar 100g', category: 'Packaged Foods', revenue: '₹2.4 Cr', velocity: '145 units/day/store', oosRate: '1.9%', otif: '98.1%', trend: 'up' },
+  { id: 'SKU-5291', name: 'HygieneShield Antibacterial Soap (4x100g)', category: 'Personal Care', revenue: '₹2.2 Cr', velocity: '160 units/day/store', oosRate: '2.0%', otif: '95.6%', trend: 'down' },
+  { id: 'SKU-8824', name: 'HydraBoost Electrolyte Drink 500ml', category: 'Beverages', revenue: '₹1.9 Cr', velocity: '132 units/day/store', oosRate: '1.1%', otif: '99.0%', trend: 'up' },
+  { id: 'SKU-6102', name: 'EcoClean Surface Cleaner Lavender 2L', category: 'Home Care', revenue: '₹1.6 Cr', velocity: '88 units/day/store', oosRate: '2.8%', otif: '93.7%', trend: 'up' },
+  { id: 'SKU-2094', name: 'CreamyGold Greek Yogurt Strawberry 150g', category: 'Dairy & Fresh', revenue: '₹1.4 Cr', velocity: '118 units/day/store', oosRate: '5.2%', otif: '91.4%', trend: 'down' },
+];
+
+// Regional Performance Matrix
+const regionalData = [
+  { region: 'North', revenue: '₹68.5 Cr', growth: '+16.8%', activeOutlets: '142,000', oosRate: '2.1%', otif: '96.8%' },
+  { region: 'South', revenue: '₹54.2 Cr', growth: '+12.4%', activeOutlets: '118,000', oosRate: '1.8%', otif: '98.1%' },
+  { region: 'West', revenue: '₹49.8 Cr', growth: '+14.1%', activeOutlets: '105,000', oosRate: '2.4%', otif: '95.4%' },
+  { region: 'East', revenue: '₹37.9 Cr', growth: '+8.9%', activeOutlets: '84,000', oosRate: '3.6%', otif: '93.2%' },
+];
+
+// Portfolio Highlights for Recruiters
+const recruiterProjects = [
+  {
+    id: 1,
+    title: 'Automated Demand Forecasting & Safety Stock ML',
+    category: 'AI / Predictive Analytics',
+    description: 'XGBoost & Prophet ML models predicting daily SKU-level demand across 400,000+ Kirana & Q-Commerce hubs.',
+    impact: 'Reduced Out-of-Stock (OOS) by 38% and slashed safety inventory holding costs by ₹4.2 Crore annually.',
+    metrics: { accuracy: '94.6% WAPE', reductionOOS: '38%', compute: '< 45 mins' },
+    stack: ['Python', 'PySpark', 'Databricks', 'Prophet', 'XGBoost', 'Snowflake'],
+  },
+  {
+    id: 2,
+    title: 'Trade Spend & Promotion ROI Optimizer',
+    category: 'Sales Analytics & Optimization',
+    description: 'Prescriptive analytics engine analyzing promotion lift, cannibalization, and trade spend efficiency across Modern Trade & Q-Comm.',
+    impact: 'Boosted promotional gross margin by 14.2% while optimizing ₹18 Cr in annual scheme distributions.',
+    metrics: { promoLift: '+22.4%', roiImprovement: '3.4x', dataProcessed: '85M Records' },
+    stack: ['SQL (Snowflake)', 'dbt', 'Tableau API', 'Python', 'FastAPI', 'PostgreSQL'],
+  },
+  {
+    id: 3,
+    title: 'Real-Time Secondary Sales Data Pipeline',
+    category: 'Data Engineering & Infrastructure',
+    description: 'Streaming ETL architecture ingesting daily distributor sell-out files, POS logs, and stock statements.',
+    impact: 'Reduced distributor sync latency from 72 hours to 15 minutes, enabling dynamic route replenishment.',
+    metrics: { ingestionRate: '12K Rec/sec', latency: '15 Mins', testCoverage: '100%' },
+    stack: ['Apache Kafka', 'Apache Flink', 'AWS S3', 'dbt', 'Airflow', 'Terraform'],
+  }
+];
+
+export default function App() {
+  const [selectedRegion, setSelectedRegion] = useState('All');
+  const [selectedChannel, setSelectedChannel] = useState('All');
+  const [activeTab, setActiveTab] = useState('overview');
+  const [searchSKU, setSearchSKU] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [liveToast, setLiveToast] = useState(null);
+  const [recruiterMode, setRecruiterMode] = useState(false);
+
+  // AI Demand Forecast Simulator State
+  const [forecastInputs, setForecastInputs] = useState({
+    promoDiscount: 15,
+    marketingSpendLakhs: 25,
+    qCommercePush: true,
+    seasonalityIndex: 1.25
+  });
+  const [simulatedForecast, setSimulatedForecast] = useState(null);
+  const [isForecasting, setIsForecasting] = useState(false);
+
+  // Filter SKUs
+  const filteredSKUs = useMemo(() => {
+    return initialSKUs.filter(sku => 
+      sku.name.toLowerCase().includes(searchSKU.toLowerCase()) ||
+      sku.category.toLowerCase().includes(searchSKU.toLowerCase()) ||
+      sku.id.toLowerCase().includes(searchSKU.toLowerCase())
+    );
+  }, [searchSKU]);
+
+  const triggerToast = (msg) => {
+    setLiveToast(msg);
+    setTimeout(() => setLiveToast(null), 3500);
+  };
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      setIsRefreshing(false);
+      triggerToast('Sales metrics successfully synchronized with SAP ERP & Distributor Management System (DMS).');
+    }, 700);
+  };
+
+  const runDemandForecast = () => {
+    setIsForecasting(true);
+    setTimeout(() => {
+      const baseUnits = 45000;
+      const promoImpact = forecastInputs.promoDiscount * 1250;
+      const spendImpact = forecastInputs.marketingSpendLakhs * 850;
+      const channelBoost = forecastInputs.qCommercePush ? 18000 : 5000;
+      
+      const predictedDemand = Math.round((baseUnits + promoImpact + spendImpact + channelBoost) * forecastInputs.seasonalityIndex);
+      const estRevenueCr = ((predictedDemand * 180) / 10000000).toFixed(2);
+      const recommendedSafetyStock = Math.round(predictedDemand * 0.18);
+      
+      setSimulatedForecast({
+        predictedDemandUnits: predictedDemand.toLocaleString('en-IN'),
+        estimatedRevenue: `₹${estRevenueCr} Cr`,
+        safetyStockUnits: recommendedSafetyStock.toLocaleString('en-IN'),
+        fillRateProbability: '98.2%',
+        confidenceInterval: '± 2.4%',
+        timestamp: new Date().toLocaleTimeString()
+      });
+      setIsForecasting(false);
+    }, 500);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-cyan-500 selection:text-slate-950 pb-12">
+      
+      {/* Toast Banner */}
+      {liveToast && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center space-x-3 bg-slate-900/90 border border-cyan-500/50 text-cyan-300 px-4 py-3 rounded-xl shadow-2xl backdrop-blur-md animate-bounce">
+          <Sparkles className="w-5 h-5 text-cyan-400 shrink-0" />
+          <span className="text-xs sm:text-sm font-medium">{liveToast}</span>
+        </div>
+      )}
+
+      {}
+      <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            
+            {/* Executive Profile Info */}
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-emerald-400 p-0.5 shadow-lg shadow-cyan-500/20">
+                  <div className="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center font-bold text-cyan-400 text-lg font-mono">
+                    SAF
+                  </div>
+                </div>
+                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-950 rounded-full" title="Available for Hiring"></span>
+              </div>
+
+              <div>
+                <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                  <h1 className="text-lg font-bold text-slate-100 tracking-tight">Syed Adil Faizan</h1>
+                  <span className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs px-2.5 py-0.5 rounded-full font-medium flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5" /> FMCG Data & AI Analytics Lead
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 mt-0.5">Commercial Intelligence, RTM Channel Optimization & Supply Chain ML Systems</p>
+              </div>
+            </div>
+
+            {/* Quick Interactive Actions */}
+            <div className="flex items-center flex-wrap gap-2 sm:gap-3">
+              {/* Recruiter Toggle */}
+              <button
+                onClick={() => {
+                  setRecruiterMode(!recruiterMode);
+                  triggerToast(recruiterMode ? 'Returned to Executive View' : 'Recruiter View Enabled: Technical Stack Highlights Active');
+                }}
+                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                  recruiterMode 
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-lg shadow-amber-500/10' 
+                    : 'bg-slate-900 border border-slate-800 text-slate-300 hover:text-white'
+                }`}
+              >
+                <Award className="w-3.5 h-3.5 text-amber-400" />
+                <span>{recruiterMode ? 'Recruiter Mode: ON' : 'Recruiter View'}</span>
+              </button>
+
+              {/* Regional Filter Dropdown */}
+              <div className="flex items-center space-x-1.5 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-xs">
+                <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                <select 
+                  value={selectedRegion}
+                  onChange={(e) => setSelectedRegion(e.target.value)}
+                  className="bg-transparent text-slate-200 font-medium focus:outline-none cursor-pointer"
+                >
+                  <option value="All" className="bg-slate-900">All Regions</option>
+                  <option value="North" className="bg-slate-900">North Zone</option>
+                  <option value="South" className="bg-slate-900">South Zone</option>
+                  <option value="West" className="bg-slate-900">West Zone</option>
+                  <option value="East" className="bg-slate-900">East Zone</option>
+                </select>
+              </div>
+
+              {/* Refresh Button */}
+              <button 
+                onClick={handleRefresh}
+                className="p-2 bg-slate-900 border border-slate-800 text-slate-300 hover:text-cyan-400 rounded-lg transition"
+                title="Refresh SAP/DMS Pipeline"
+              >
+                <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-cyan-400' : ''}`} />
+              </button>
+
+              {/* LinkedIn Share Trigger */}
+              <button 
+                onClick={() => triggerToast('Portfolio link copied! Ready to showcase on LinkedIn.')}
+                className="flex items-center space-x-1.5 bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-lg shadow-cyan-500/20 transition"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span>LinkedIn Share</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </header>
+
+      {/* Recruiter Overview Highlight Banner */}
+      {recruiterMode && (
+        <div className="bg-amber-500/10 border-b border-amber-500/20 py-2.5 px-4 text-xs text-amber-200">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div className="flex items-center space-x-2">
+              <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+              <span><strong>Recruiter Spotlight:</strong> Syed Adil Faizan specializes in bridging FMCG Commercial Strategy with PySpark, Snowflake, dbt & Production ML models.</span>
+            </div>
+            <div className="flex items-center space-x-3 font-mono text-[11px]">
+              <span>SQL / Python</span>
+              <span>•</span>
+              <span>Demand Forecasting</span>
+              <span>•</span>
+              <span>DMS / Trade Spend Optimization</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Content Body */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+
+        {}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          {/* Card 1: Gross Sales Revenue */}
+          <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 relative overflow-hidden backdrop-blur-md group hover:border-cyan-500/40 transition">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Gross Sales Revenue (YTD)</p>
+                <h3 className="text-2xl font-black text-slate-100 font-mono mt-1">₹210.4 Cr</h3>
+              </div>
+              <div className="p-2 bg-cyan-500/10 text-cyan-400 rounded-xl border border-cyan-500/20">
+                <DollarSign className="w-5 h-5" />
+              </div>
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs">
+              <span className="text-emerald-400 font-medium flex items-center gap-0.5">
+                <TrendingUp className="w-3.5 h-3.5" /> +14.8% vs Target
+              </span>
+              <span className="text-slate-500 font-mono">Secondary: ₹204.2 Cr</span>
+            </div>
+            <div className="mt-2 h-1 w-full bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-cyan-400 w-[92%] rounded-full shadow-[0_0_8px_#22d3ee]"></div>
+            </div>
+          </div>
+
+          {/* Card 2: OTIF Fulfillment */}
+          <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 relative overflow-hidden backdrop-blur-md group hover:border-emerald-500/40 transition">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">OTIF Supply Fulfillment</p>
+                <h3 className="text-2xl font-black text-slate-100 font-mono mt-1">96.8%</h3>
+              </div>
+              <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+                <PackageCheck className="w-5 h-5" />
+              </div>
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs">
+              <span className="text-emerald-400 font-medium flex items-center gap-0.5">
+                Target: &gt; 95%
+              </span>
+              <span className="text-slate-500 font-mono">On-Time In-Full</span>
+            </div>
+            <div className="mt-2 h-1 w-full bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-emerald-400 w-[96.8%] rounded-full shadow-[0_0_8px_#34d399]"></div>
+            </div>
+          </div>
+
+          {/* Card 3: Out of Stock Rate */}
+          <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 relative overflow-hidden backdrop-blur-md group hover:border-indigo-500/40 transition">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Out-of-Stock (OOS) Rate</p>
+                <h3 className="text-2xl font-black text-slate-100 font-mono mt-1">2.14%</h3>
+              </div>
+              <div className="p-2 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20">
+                <Boxes className="w-5 h-5" />
+              </div>
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs">
+              <span className="text-emerald-400 font-medium flex items-center gap-0.5">
+                -1.4% YoY Improvement
+              </span>
+              <span className="text-slate-500 font-mono">Key Outlets</span>
+            </div>
+            <div className="mt-2 h-1 w-full bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-indigo-500 w-[85%] rounded-full shadow-[0_0_8px_#6366f1]"></div>
+            </div>
+          </div>
+
+          {/* Card 4: Active Outlet Reach */}
+          <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 relative overflow-hidden backdrop-blur-md group hover:border-amber-500/40 transition">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Active Retailer Outlets</p>
+                <h3 className="text-2xl font-black text-slate-100 font-mono mt-1">449,000</h3>
+              </div>
+              <div className="p-2 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
+                <Store className="w-5 h-5" />
+              </div>
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs">
+              <span className="text-amber-400 font-medium flex items-center gap-0.5">
+                Trade Spend ROI: 3.8x
+              </span>
+              <span className="text-slate-500 font-mono">B2B Network</span>
+            </div>
+            <div className="mt-2 h-1 w-full bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-amber-400 w-[91%] rounded-full shadow-[0_0_8px_#fbbf24]"></div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Navigation Tabs */}
+        <div className="flex items-center space-x-2 border-b border-slate-800 pb-2 overflow-x-auto">
+          {[
+            { id: 'overview', label: 'Executive Sales & Channel Intelligence', icon: BarChart3 },
+            { id: 'skus', label: 'SKU Velocity & Inventory Matrix', icon: ShoppingBag },
+            { id: 'forecasting', label: 'AI Demand & Trade Spend Simulator', icon: Sliders },
+            { id: 'architectures', label: 'Data & Analytics Architecture', icon: Layers }
+          ].map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-medium transition whitespace-nowrap ${
+                  activeTab === tab.id
+                    ? 'bg-slate-900 text-cyan-400 border border-cyan-500/30 shadow-md shadow-cyan-500/10 font-semibold'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {}
+        {activeTab === 'overview' && (
+          <div className="space-y-6">
+            
+            {/* Primary vs Secondary Sales & Trade Spend Trend */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              
+              <div className="lg:col-span-2 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 backdrop-blur-md">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-cyan-400" />
+                      Monthly Sales Performance: Primary vs. Secondary (₹ Crores)
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">Distributor sell-in (Primary) vs. Retailer sell-out (Secondary)</p>
+                  </div>
+                  <div className="flex items-center space-x-3 text-xs">
+                    <span className="flex items-center gap-1 text-slate-300">
+                      <span className="w-2.5 h-2.5 rounded-full bg-cyan-400"></span> Primary
+                    </span>
+                    <span className="flex items-center gap-1 text-slate-300">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> Secondary
+                    </span>
+                    <span className="flex items-center gap-1 text-slate-300">
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Target
+                    </span>
+                  </div>
+                </div>
+
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={monthlySalesData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="primaryGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.4}/>
+                          <stop offset="95%" stopColor="#22d3ee" stopOpacity={0}/>
+                        </linearGradient>
+                        <linearGradient id="secondaryGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
+                          <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                      <XAxis dataKey="month" stroke="#64748b" fontSize={11} tickLine={false} />
+                      <YAxis stroke="#64748b" fontSize={11} tickLine={false} />
+                      <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '0.75rem', fontSize: '12px' }} />
+                      <Area type="monotone" dataKey="primarySales" stroke="#22d3ee" strokeWidth={2} fillOpacity={1} fill="url(#primaryGrad)" name="Primary Sales (₹ Cr)" />
+                      <Area type="monotone" dataKey="secondarySales" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#secondaryGrad)" name="Secondary Sales (₹ Cr)" />
+                      <Line type="monotone" dataKey="target" stroke="#f59e0b" strokeWidth={2} strokeDasharray="4 4" dot={false} name="Sales Target (₹ Cr)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Route-To-Market Channel Share */}
+              <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 backdrop-blur-md flex flex-col justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
+                    <Store className="w-4 h-4 text-indigo-400" />
+                    Route-To-Market (RTM) Share
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Quick Commerce vs Kirana vs Modern Trade</p>
+                </div>
+
+                <div className="h-48 w-full relative my-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={channelShareData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={75}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {channelShareData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} stroke="#0f172a" strokeWidth={2} />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '0.75rem', fontSize: '12px' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-lg font-bold font-mono text-slate-100">RTM</span>
+                    <span className="text-[10px] text-slate-400">Channels</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5 text-xs">
+                  {channelShareData.map((item) => (
+                    <div key={item.name} className="flex justify-between items-center">
+                      <div className="flex items-center space-x-2">
+                        <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: item.color }}></span>
+                        <span className="text-slate-300">{item.name}</span>
+                      </div>
+                      <span className="font-mono text-slate-400 font-semibold">{item.value}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+
+            {/* Category Performance & Regional Matrix */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              
+              {/* Category Growth & Revenue Bar */}
+              <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 backdrop-blur-md">
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
+                      <Boxes className="w-4 h-4 text-emerald-400" />
+                      Product Category Sales Distribution (₹ Crores)
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">Top performing product lines YTD</p>
+                  </div>
+                </div>
+
+                <div className="h-60 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={categoryData} layout="vertical" margin={{ top: 5, right: 20, left: 40, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                      <XAxis type="number" stroke="#64748b" fontSize={11} />
+                      <YAxis dataKey="name" type="category" stroke="#94a3b8" fontSize={10} width={100} tickLine={false} />
+                      <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '0.75rem', fontSize: '12px' }} />
+                      <Bar dataKey="revenue" fill="#10b981" radius={[0, 4, 4, 0]} name="Revenue (₹ Cr)" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Regional Breakdown Grid */}
+              <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 backdrop-blur-md flex flex-col justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-amber-400" />
+                    Regional Execution Matrix
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Coverage, OTIF & Out-of-Stock by geographical zone</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 my-3">
+                  {regionalData.map((reg) => (
+                    <div key={reg.region} className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 hover:border-slate-700 transition">
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-slate-200 text-xs">{reg.region} Zone</span>
+                        <span className="text-[10px] text-emerald-400 font-mono font-semibold">{reg.growth}</span>
+                      </div>
+                      <div className="mt-2 text-lg font-black font-mono text-cyan-400">{reg.revenue}</div>
+                      <div className="mt-2 text-[10px] text-slate-400 flex justify-between">
+                        <span>Reach: {reg.activeOutlets}</span>
+                        <span>OTIF: {reg.otif}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="p-3 bg-cyan-500/5 rounded-xl border border-cyan-500/10 text-xs text-slate-300 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
+                  <span>North Zone led Q3 volume expansion driven by Q-Commerce dark store integration.</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {}
+        {activeTab === 'skus' && (
+          <div className="space-y-4">
+            
+            {/* Search and Table Control Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-900/60 p-4 rounded-2xl border border-slate-800/80">
+              <div className="relative w-full sm:w-80">
+                <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+                <input 
+                  type="text"
+                  placeholder="Search SKU name, ID, category..."
+                  value={searchSKU}
+                  onChange={(e) => setSearchSKU(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500 transition"
+                />
+              </div>
+
+              <div className="text-xs text-slate-400 font-mono">
+                Showing <span className="text-cyan-400 font-bold">{filteredSKUs.length}</span> of {initialSKUs.length} High-Velocity SKUs
+              </div>
+            </div>
+
+            {/* SKU Data Table */}
+            <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl overflow-hidden backdrop-blur-md">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-950/80 border-b border-slate-800 text-slate-400 uppercase text-[10px] font-mono">
+                    <tr>
+                      <th className="py-3.5 px-4">SKU Code & Name</th>
+                      <th className="py-3.5 px-4">Category</th>
+                      <th className="py-3.5 px-4">YTD Revenue</th>
+                      <th className="py-3.5 px-4">Velocity Rate</th>
+                      <th className="py-3.5 px-4">OOS Rate</th>
+                      <th className="py-3.5 px-4">OTIF Delivery</th>
+                      <th className="py-3.5 px-4 text-right">Trend</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                    {filteredSKUs.map((sku) => (
+                      <tr key={sku.id} className="hover:bg-slate-800/40 transition">
+                        <td className="py-3 px-4 font-medium">
+                          <span className="font-mono text-[10px] text-cyan-400 block">{sku.id}</span>
+                          <span className="text-slate-100 font-semibold">{sku.name}</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px] border border-slate-700">
+                            {sku.category}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 font-mono font-bold text-emerald-400">{sku.revenue}</td>
+                        <td className="py-3 px-4 font-mono">{sku.velocity}</td>
+                        <td className="py-3 px-4 font-mono text-amber-400">{sku.oosRate}</td>
+                        <td className="py-3 px-4 font-mono text-cyan-400">{sku.otif}</td>
+                        <td className="py-3 px-4 text-right">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
+                            sku.trend === 'up' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'
+                          }`}>
+                            {sku.trend === 'up' ? '▲ High Demand' : '▼ Slower'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {}
+        {activeTab === 'forecasting' && (
+          <div className="space-y-6">
+            
+            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 backdrop-blur-md">
+              <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-4 mb-6">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                    <Sliders className="w-5 h-5 text-cyan-400" />
+                    AI FMCG Demand Forecasting & Trade Spend Simulator
+                  </h2>
+                  <p className="text-xs text-slate-400 mt-1">Simulate trade promotional lift and Q-Commerce demand impacts using Machine Learning algorithms.</p>
+                </div>
+                <div className="mt-2 md:mt-0 font-mono text-xs text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-3 py-1 rounded-full">
+                  Model: XGBoost-FMCG-v4.1
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                {/* Input Parameters */}
+                <div className="lg:col-span-7 space-y-5">
+                  
+                  {/* Slider 1: Promotional Discount */}
+                  <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-xs font-semibold text-slate-200">Scheme / Consumer Discount (%)</label>
+                      <span className="font-mono text-cyan-400 text-xs font-bold">{forecastInputs.promoDiscount}% Off</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      min="5" 
+                      max="35" 
+                      step="5"
+                      value={forecastInputs.promoDiscount}
+                      onChange={(e) => setForecastInputs({...forecastInputs, promoDiscount: parseInt(e.target.value)})}
+                      className="w-full accent-cyan-400 bg-slate-800 h-2 rounded-lg cursor-pointer"
+                    />
+                  </div>
+
+                  {/* Slider 2: Marketing & Trade Spend */}
+                  <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-xs font-semibold text-slate-200">Trade Spend & Co-Op Ads Budget (₹ Lakhs)</label>
+                      <span className="font-mono text-emerald-400 text-xs font-bold">₹{forecastInputs.marketingSpendLakhs} Lakhs</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      min="5" 
+                      max="100" 
+                      step="5"
+                      value={forecastInputs.marketingSpendLakhs}
+                      onChange={(e) => setForecastInputs({...forecastInputs, marketingSpendLakhs: parseInt(e.target.value)})}
+                      className="w-full accent-emerald-400 bg-slate-800 h-2 rounded-lg cursor-pointer"
+                    />
+                  </div>
+
+                  {/* Channel Push Checkbox */}
+                  <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800 flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-semibold text-slate-200 block">Q-Commerce Dark Store Priority Stocking</span>
+                      <span className="text-[10px] text-slate-400">Allocate 30% extra buffer stock to Blinkit / Zepto hubs</span>
+                    </div>
+                    <input 
+                      type="checkbox"
+                      checked={forecastInputs.qCommercePush}
+                      onChange={(e) => setForecastInputs({...forecastInputs, qCommercePush: e.target.checked})}
+                      className="w-4 h-4 accent-cyan-500 rounded cursor-pointer"
+                    />
+                  </div>
+
+                  <button 
+                    onClick={runDemandForecast}
+                    disabled={isForecasting}
+                    className="w-full bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 shadow-lg shadow-cyan-500/20"
+                  >
+                    {isForecasting ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Play className="w-3.5 h-3.5 fill-current" />
+                        <span>Run ML Demand Prediction</span>
+                      </>
+                    )}
+                  </button>
+
+                </div>
+
+                {/* Output Metrics */}
+                <div className="lg:col-span-5 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-cyan-400" />
+                      Predicted Demand & Safety Inventory
+                    </h3>
+
+                    {simulatedForecast ? (
+                      <div className="space-y-3">
+                        <div className="bg-slate-900/90 p-3.5 rounded-xl border border-cyan-500/30">
+                          <span className="text-[10px] text-slate-400 uppercase block font-mono">Forecasted Primary Demand</span>
+                          <div className="text-2xl font-black font-mono text-cyan-400 mt-0.5">{simulatedForecast.predictedDemandUnits} <span className="text-xs font-normal text-slate-400">Units</span></div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                            <span className="text-[10px] text-slate-400 uppercase block font-mono">Est. Revenue Impact</span>
+                            <div className="text-lg font-bold font-mono text-emerald-400 mt-0.5">{simulatedForecast.estimatedRevenue}</div>
+                          </div>
+
+                          <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                            <span className="text-[10px] text-slate-400 uppercase block font-mono">Safety Stock Rec.</span>
+                            <div className="text-lg font-bold font-mono text-amber-400 mt-0.5">{simulatedForecast.safetyStockUnits}</div>
+                          </div>
+                        </div>
+
+                        <div className="pt-2 text-[10px] text-slate-400 font-mono flex justify-between">
+                          <span>Target Fill Rate: <strong className="text-cyan-400">{simulatedForecast.fillRateProbability}</strong></span>
+                          <span>Confidence: <strong className="text-slate-200">{simulatedForecast.confidenceInterval}</strong></span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="h-48 flex flex-col items-center justify-center text-slate-600 text-center space-y-2">
+                        <Terminal className="w-8 h-8 opacity-40" />
+                        <span className="text-xs">Adjust scheme sliders and click "Run ML Demand Prediction"</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-slate-800 text-[11px] text-slate-400 flex items-start space-x-2">
+                    <AlertCircle className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                    <span>Calculates elasticity metrics using historical secondary sell-out data from 1,200+ distributors.</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {}
+        {activeTab === 'architectures' && (
+          <div className="space-y-6">
+            
+            <div className="bg-slate-900/60 p-5 rounded-2xl border border-slate-800/80 backdrop-blur-md">
+              <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
+                <Code className="w-4 h-4 text-cyan-400" />
+                Featured Technical Systems Engineered by Syed Adil Faizan
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">High-impact analytics pipelines designed for recruiter evaluation</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {recruiterProjects.map((project) => (
+                <div key={project.id} className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 hover:border-cyan-500/40 transition flex flex-col justify-between group backdrop-blur-md">
+                  <div>
+                    <span className="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-0.5 rounded-full font-semibold">
+                      {project.category}
+                    </span>
+
+                    <h3 className="text-base font-bold text-slate-100 mt-3 group-hover:text-cyan-300 transition">
+                      {project.title}
+                    </h3>
+
+                    <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                      {project.description}
+                    </p>
+
+                    <div className="mt-4 bg-slate-950/80 border border-slate-800 rounded-xl p-3 text-xs">
+                      <span className="text-amber-400 font-semibold block mb-0.5 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" /> Commercial Impact:
+                      </span>
+                      <p className="text-slate-300">{project.impact}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-slate-800/60 flex flex-wrap gap-1.5">
+                    {project.stack.map((tech) => (
+                      <span key={tech} className="bg-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded font-mono border border-slate-700">
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+          </div>
+        )}
+
+      </main>
+
+      {/* Footer */}
+      <footer className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-6 border-t border-slate-800 text-center text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <p>© 2026 Syed Adil Faizan — FMCG Data & Commercial Analytics Leadership</p>
+        <div className="flex items-center space-x-4">
+          <span className="flex items-center gap-1 text-slate-400 hover:text-cyan-400 cursor-pointer transition">
+            <Globe className="w-3.5 h-3.5" /> Open for Lead FMCG Data Analytics Roles
+          </span>
+        </div>
+      </footer>
+
+    </div>
+  );
+}
